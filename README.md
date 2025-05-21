@@ -198,7 +198,7 @@ from spotify
 
 ```
 
-3. **Use a `WITH` clause to calculate the difference between the highest and lowest energy values for tracks in each album.**
+3. Use a `WITH` clause to calculate the difference between the highest and lowest energy values for tracks in each album.
 ```sql
 With CTE_Energy as(
 	select album, 
