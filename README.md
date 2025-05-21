@@ -1,4 +1,4 @@
-# Spotify Advanced SQL Project and Query Optimization P-6
+# Spotify Advanced SQL Project and Query Optimization
 Project Category: Advanced
 [Click Here to get Dataset](https://www.kaggle.com/datasets/sanjanchaudhari/spotify-dataset)
 
@@ -47,65 +47,202 @@ Before diving into SQL, it’s important to understand the dataset thoroughly. T
 - `Album_type`: The type of album (e.g., single or album).
 - Various metrics such as `danceability`, `energy`, `loudness`, `tempo`, and more.
 
-### 4. Querying the Data
+### 2. Querying the Data
 After the data is inserted, various SQL queries can be written to explore and analyze the data. Queries are categorized into **easy**, **medium**, and **advanced** levels to help progressively develop SQL proficiency.
 
-#### Easy Queries
-- Simple data retrieval, filtering, and basic aggregations.
-  
-#### Medium Queries
-- More complex queries involving grouping, aggregation functions, and joins.
-  
-#### Advanced Queries
-- Nested subqueries, window functions, CTEs, and performance optimization.
 
-### 5. Query Optimization
-In advanced stages, the focus shifts to improving query performance. Some optimization strategies include:
-- **Indexing**: Adding indexes on frequently queried columns.
-- **Query Execution Plan**: Using `EXPLAIN ANALYZE` to review and refine query performance.
-  
 ---
 
 ## 15 Practice Questions
 
 ### Easy Level
 1. Retrieve the names of all tracks that have more than 1 billion streams.
+```sql
+select * from spotify
+where stream > 1000000000;
+```
+   
 2. List all albums along with their respective artists.
+```sql
+
+select  distinct(album), artist
+from spotify;
+```
+
 3. Get the total number of comments for tracks where `licensed = TRUE`.
+```sql
+
+select SUM(comments) 
+from spotify
+	where licensed = 'true';
+
+```
 4. Find all tracks that belong to the album type `single`.
+```sql
+
+select * 
+from spotify
+	where album_type = 'single';
+
+
+```
 5. Count the total number of tracks by each artist.
+```sql
+
+select artist, COUNT(*)
+from spotify
+	GROUP BY artist
+	ORDER BY COUNT(*) DESC;
+
+
+```
 
 ### Medium Level
 1. Calculate the average danceability of tracks in each album.
+```sql
+select album, avg(danceability) as Average_D
+from spotify
+	GROUP BY album
+	ORDER BY Average_D DESC;
+
+
+
+```
+
+
 2. Find the top 5 tracks with the highest energy values.
-3. List all tracks along with their views and likes where `official_video = TRUE`.
-4. For each album, calculate the total views of all associated tracks.
-5. Retrieve the track names that have been streamed on Spotify more than YouTube.
+```sql
+select track, max(energy) as MAX_Avg	
+from spotify
+	GROUP BY track
+	ORDER BY MAX_Avg DESC
+	LIMIT 5
+
+
+
+```
+
+
+3. For each album, calculate the total views of all associated tracks.
+```sql
+
+select album, track, SUM(views) as sum_views
+from spotify
+	GROUP BY album, track
+	ORDER BY sum_views DESC
+
+
+```
+
+
+4. Retrieve the track names that have been streamed on Spotify more than YouTube.
+```sql
+
+
+select * from
+(select track, 
+		--most_played_on, 
+		COALESCE(SUM(CASE 
+		WHEN most_played_on = 'Spotify' then stream
+		END),0) as stream_spfy,
+		COALESCE(SUM(CASE 
+		WHEN most_played_on = 'Youtube' then stream
+		END),0) as stream_yt
+from spotify
+GROUP BY track
+) as sub_query1
+where stream_spfy > stream_yt
+	and stream_yt != 0
+
+```
 
 ### Advanced Level
 1. Find the top 3 most-viewed tracks for each artist using window functions.
+```sql
+
+select * from
+	(select 
+		artist, 
+		track, 
+		SUM(views) as total_views,
+		DENSE_RANK() Over(Partition by artist Order by SUM(views) DESC) as RNK
+	from spotify
+	GROUP BY 1,2
+	ORDER BY 1,3 DESC)
+where RNK = 1 or RNK = 2 or RNK = 3
+
+-----OR----
+WITH CTE_ranking_artist as
+(select 
+		artist, 
+		track, 
+		SUM(views) as total_views,
+		DENSE_RANK() Over(Partition by artist Order by SUM(views) DESC) as RNK
+	from spotify
+	GROUP BY 1,2
+	ORDER BY 1,3 DESC)
+
+Select * from CTE_ranking_artist
+where RNK <=3
+
+
+```
+
 2. Write a query to find tracks where the liveness score is above the average.
+```sql
+
+select track, liveness
+from spotify
+	where liveness > (select avg(liveness) from spotify)
+
+
+```
+
 3. **Use a `WITH` clause to calculate the difference between the highest and lowest energy values for tracks in each album.**
 ```sql
-WITH cte
-AS
-(SELECT 
-	album,
-	MAX(energy) as highest_energy,
-	MIN(energy) as lowest_energery
-FROM spotify
-GROUP BY 1
+With CTE_Energy as(
+	select album, 
+			MAX(energy) as en_max,
+			MIN(energy) as en_min
+	from spotify
+	group by 1
 )
-SELECT 
-	album,
-	highest_energy - lowest_energery as energy_diff
-FROM cte
-ORDER BY 2 DESC
+
+select *, (en_max - en_min) as Energy_Difference
+from CTE_Energy
+order by 4 desc
+
 ```
    
-5. Find tracks where the energy-to-liveness ratio is greater than 1.2.
-6. Calculate the cumulative sum of likes for tracks ordered by the number of views, using window functions.
+4. Find tracks where the energy-to-liveness ratio is greater than 1.2.
 
+```sql
+
+select  * from
+(select	track, 
+		energy, 
+		liveness, 
+		(energy/liveness) as ratio
+from spotify)
+where ratio > 1.2
+order by ratio desc
+
+
+```
+
+5. Calculate the cumulative sum of likes for tracks ordered by the number of views, using window functions.
+
+```sql
+
+select track, 
+		most_played_on,
+		views,
+		likes,
+		SUM(likes) Over(Order by views desc) as cumu_likes
+from spotify
+
+
+```
 
 Here’s an updated section for your **Spotify Advanced SQL Project and Query Optimization** README, focusing on the query optimization task you performed. You can include the specific screenshots and graphs as described.
 
@@ -149,15 +286,8 @@ This optimization shows how indexing can drastically reduce query time, improvin
 
 ## Technology Stack
 - **Database**: PostgreSQL
-- **SQL Queries**: DDL, DML, Aggregations, Joins, Subqueries, Window Functions
+- **SQL Queries**: DDL, DML, Aggregations, Subqueries, Window Functions
 - **Tools**: pgAdmin 4 (or any SQL editor), PostgreSQL (via Homebrew, Docker, or direct installation)
-
-## How to Run the Project
-1. Install PostgreSQL and pgAdmin (if not already installed).
-2. Set up the database schema and tables using the provided normalization structure.
-3. Insert the sample data into the respective tables.
-4. Execute SQL queries to solve the listed problems.
-5. Explore query optimization techniques for large datasets.
 
 ---
 
