@@ -1,6 +1,10 @@
 # Spotify Advanced SQL Project and Query Optimization
-Project Category: Advanced
-[Click Here to get Dataset](https://www.kaggle.com/datasets/sanjanchaudhari/spotify-dataset)
+**Project Category: Advanced**
+
+**Dataset**: [Spotify Dataset](https://www.kaggle.com/datasets/sanjanchaudhari/spotify-dataset)
+
+**Tableau Analysis** : [Tableau Dashboard](https://public.tableau.com/views/Spotify_YT_Tableau/D1?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+
 
 ![Spotify Logo](https://github.com/najirh/najirh-Spotify-Data-Analysis-using-SQL/blob/main/spotify_logo.jpg)
 
